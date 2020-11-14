@@ -32,7 +32,7 @@ task Unzip {
     }
 }
 
-task DownloadSraPairedReads {
+task GetSraIllumina {
     input {
         String sra_illumina_paired
     }
@@ -51,7 +51,7 @@ task DownloadSraPairedReads {
     }
 }
 
-task DownloadSraReads {
+task GetSraNanopore {
     input {
         String sra_reads
     }
@@ -69,7 +69,7 @@ task DownloadSraReads {
     }
 }
 
-task CreateLastdbIndex {
+task LastdbIndex {
     input {
         String index_name
         File reference_fasta
@@ -98,6 +98,7 @@ task LastAlign {
     }
 
     command <<<
+        set -e
         for i in ~{sep=" " index_files}; do ln -s $i .; done
         lastal ~{index_name} ~{new_assembly} > ~{test_name}.paf
         last-dotplot --rot2=h -x 1500 -y 1500 ~{test_name}.paf ~{test_name}.png
@@ -112,25 +113,26 @@ task LastAlign {
     }
 }
 
-task RunCanuAssemble {
+task CanuAssemble {
     input {
-        String prefix
-        String genome_size
-        String corrected_error_rate
         File nanopore_reads
-        Boolean fast
+        CanuParameters p
     }
 
+    String corrected_error_rate = if (defined(p.corrected_error_rate)) then "correctedErrorRate=~{p.corrected_error_rate}"  else ""
+    String correction_min_coverage = if (defined(p.correction_min_coverage)) then "corMinCoverage=~{p.correction_min_coverage}"  else ""
+
     command <<<
-    canu -p ~{prefix} -d result \
-        genomeSize=~{genome_size} \
-        ~{true="-fast" false="" fast} \
-        correctedErrorRate=~{corrected_error_rate} \
-        -nanopore-raw ~{nanopore_reads}
+        canu -p ~{p.prefix} -d result \
+            genomeSize=~{p.genome_size} \
+            ~{true="-fast" false="" p.fast} \
+            ~{corrected_error_rate} \
+            ~{correction_min_coverage} \
+            -nanopore-raw ~{nanopore_reads}
     >>>
 
     runtime {
-        docker: "taniguti/canu:1.8"
+        docker: "~{p.container_image}"
         memory: "16 GB"
         cpu: "8"
         disks: "local-disk " + 20 + " HDD"
@@ -138,8 +140,8 @@ task RunCanuAssemble {
     }
 
     output {
-        File contigs_fasta = "result/${prefix}.contigs.fasta"
-        File report = "result/~{prefix}.report"
+        File contigs_fasta = "result/${p.prefix}.contigs.fasta"
+        File report = "result/~{p.prefix}.report"
     }
 }
 
@@ -154,8 +156,7 @@ task AlignToAssemblyBwa {
     command <<<
         set -e
         bwa index ~{reference}
-        bwa mem -t 7 ~{reference} ~{r1} ~{r2} > align.sam
-        samtools view -u align.sam | samtools sort -@ 4 - -o align.bam
+        bwa mem -t 7 ~{reference} ~{r1} ~{r2} | samtools sort -@ 4 -o align.bam -
         samtools index align.bam
     >>>
 
@@ -173,8 +174,9 @@ task AlignToAssemblyBwa {
     }
 }
 
-task RunPilon {
+task Pilon {
     input {
+        String project_name
         File alignments
         File align_idxs
         File reference
@@ -183,7 +185,7 @@ task RunPilon {
     command <<<
         mkdir resultados
         java -Xmx5G -jar /workspace/pilon-1.23.jar --genome ~{reference} \
-             --frags ~{alignments} --outdir resultados/ \
+             --frags ~{alignments} --outdir resultados/ --output ~{project_name} \
              --changes --fix bases,gaps --tracks --threads 5
     >>>
 
@@ -196,15 +198,15 @@ task RunPilon {
     }
 
     output {
-        File changes = "resultados/pilonChanges.wig"
-        File copy_number = "resultados/pilonCopyNumber.wig"
-        File coverage = "resultados/pilonCoverage.wig"
-        File fasta = "resultados/pilon.fasta"
+        File changes = "resultados/~{project_name}.pilonChanges.wig"
+        File copy_number = "resultados/~{project_name}.pilonCopyNumber.wig"
+        File coverage = "resultados/~{project_name}.pilonCoverage.wig"
+        File fasta = "resultados/~{project_name}.pilon.fasta"
     }
 }
 
 
-task RunBusco4 {
+task Busco4 {
     input {
         File assembly
         String lineage
@@ -230,11 +232,21 @@ task RunBusco4 {
 }
 
 
-workflow Canu2AssemblyNanopore {
+struct CanuParameters {
+    String genome_size
+    String prefix
+    Boolean fast
+    String container_image
+    String? corrected_error_rate
+    String? correction_min_coverage
+}
+
+workflow CanuAssemblyNanopore {
     input {
-        String genome_size
         String project_name
-        String corrected_error_rate
+        # Assembly parameters
+        CanuParameters canu_parameters
+        # Inputs from NCBI
         File reference_gz
         String sra_illumina
         String sra_nanopore
@@ -242,19 +254,15 @@ workflow Canu2AssemblyNanopore {
 
     String index_name = "my-index"
 
-    call DownloadSraReads {
+    call GetSraNanopore {
         input:
             sra_reads=sra_nanopore
     }
 
-    String test_name = project_name + "_" + corrected_error_rate
-    call RunCanuAssemble {
+    call CanuAssemble {
         input:
-            prefix=test_name,
-            genome_size=genome_size,
-            nanopore_reads=DownloadSraReads.fastq,
-            corrected_error_rate=corrected_error_rate,
-            fast=false
+            nanopore_reads=GetSraNanopore.fastq,
+            p=canu_parameters
     }
 
     call Unzip as UnzipFasta {
@@ -263,7 +271,7 @@ workflow Canu2AssemblyNanopore {
             outfile="reference.fa"
     }
 
-    call CreateLastdbIndex {
+    call LastdbIndex {
         input:
             index_name=index_name,
             reference_fasta=UnzipFasta.out
@@ -272,43 +280,44 @@ workflow Canu2AssemblyNanopore {
     call LastAlign {
         input:
             index_name=index_name,
-            index_files=CreateLastdbIndex.files,
-            new_assembly=RunCanuAssemble.contigs_fasta,
-            test_name=test_name
+            index_files=LastdbIndex.files,
+            new_assembly=CanuAssemble.contigs_fasta,
+            test_name=project_name
     }
 
-    call DownloadSraPairedReads {
+    call GetSraIllumina {
         input:
             sra_illumina_paired=sra_illumina
     }
 
     call AlignToAssemblyBwa {
         input:
-            r1=DownloadSraPairedReads.r1,
-            r2=DownloadSraPairedReads.r2,
-            reference=RunCanuAssemble.contigs_fasta
+            r1=GetSraIllumina.r1,
+            r2=GetSraIllumina.r2,
+            reference=CanuAssemble.contigs_fasta
     }
 
-    call RunPilon {
+    call Pilon {
         input:
-            reference=RunCanuAssemble.contigs_fasta,
+            project_name=project_name,
+            reference=CanuAssemble.contigs_fasta,
             alignments=AlignToAssemblyBwa.bam,
             align_idxs=AlignToAssemblyBwa.bai
     }
 
-    call RunBusco4 {
+    call Busco4 {
         input:
-            assembly=RunPilon.fasta,
+            assembly=Pilon.fasta,
             lineage="basidiomycota_odb10"
     }
 
     output {
         CanuResult results =  {
-            "name": test_name,
-            "fasta": RunCanuAssemble.contigs_fasta,
+            "name": project_name,
+            "fasta": CanuAssemble.contigs_fasta,
             "dotplot": LastAlign.dotplot
         }
-        File pilon_fasta = RunPilon.fasta
-        File busco_short_table = RunBusco4.short_table
+        File pilon_fasta = Pilon.fasta
+        File busco_short_table = Busco4.short_table
     }
 }
