@@ -1,0 +1,8 @@
+{
+  "Canu2AssemblyNanopore.project_name": "LeucophaeiAssembly",
+  "Canu2AssemblyNanopore.corrected_error_rate": "0.105",
+  "Canu2AssemblyNanopore.genome_size": "21m",
+  "Canu2AssemblyNanopore.reference_gz": "https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/014/826/065/GCA_014826065.1_ASM1482606v1/GCA_014826065.1_ASM1482606v1_genomic.fna.gz",
+  "Canu2AssemblyNanopore.sra_illumina": "SRR12314149",
+  "Canu2AssemblyNanopore.sra_nanopore": "SRR12314150"
+}
