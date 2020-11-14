@@ -38,7 +38,7 @@ task DownloadSraPairedReads {
     }
 
     command <<<
-        fastq-dump -I --gzip --split-files ~{sra_illumina_paired}
+        fastq-dump --gzip --split-files ~{sra_illumina_paired}
     >>>
 
     runtime {
@@ -214,7 +214,7 @@ task RunBusco4 {
     command <<<
         busco --in ~{assembly} \
               --lineage_dataset ~{lineage} \
-              --mode prot \
+              --mode geno \
               -o results \
               -c 7 \
               --augustus_species ustilago_maydis
@@ -286,12 +286,12 @@ workflow Canu2AssemblyNanopore {
         input:
             r1=DownloadSraPairedReads.r1,
             r2=DownloadSraPairedReads.r2,
-            reference=UnzipFasta.out
+            reference=RunCanuAssemble.contigs_fasta
     }
 
     call RunPilon {
         input:
-            reference=UnzipFasta.out,
+            reference=RunCanuAssemble.contigs_fasta,
             alignments=AlignToAssemblyBwa.bam,
             align_idxs=AlignToAssemblyBwa.bai
     }
