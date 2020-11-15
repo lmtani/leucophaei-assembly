@@ -198,10 +198,10 @@ task Pilon {
     }
 
     output {
-        File changes = "resultados/~{project_name}.pilonChanges.wig"
-        File copy_number = "resultados/~{project_name}.pilonCopyNumber.wig"
-        File coverage = "resultados/~{project_name}.pilonCoverage.wig"
-        File fasta = "resultados/~{project_name}.pilon.fasta"
+        File changes = "resultados/~{project_name}Changes.wig"
+        File copy_number = "resultados/~{project_name}CopyNumber.wig"
+        File coverage = "resultados/~{project_name}Coverage.wig"
+        File fasta = "resultados/~{project_name}.fasta"
     }
 }
 

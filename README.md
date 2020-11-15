@@ -6,9 +6,29 @@ This repository contains a workflow that automates the following tasks:
 1. Assemble Nanopore reads into contigs with Canu.
 1. Map Illumina reads into canu contigs.
 1. Run Pilon to improve the assembly.
-1. Evaluate the assembly with BUSCO.
+1. Evaluate the assembly completeness with BUSCO.
 
 ![diagram](https://user-images.githubusercontent.com/12699242/99152175-e08cf100-267e-11eb-9c3e-a1ff8f4a5c3b.png)
 
-## Results
+## Inputs
 
+- SRA code for illumina reads
+- SRA code for nanopore reads
+- http url for the submitted genome (.gz)
+- Canu parameters and docker image - fast, genome_size, corrected error rate, correction min coverage.
+
+## Outputs
+
+- Contigs, assembled using Canu and Nanopore reads and corrected with Pilon and Illumina reads.
+- BUSCO statistics.
+- Dotplot (Last) comparing the assembly with the NCBI submitted genome.
+
+
+## Benchmark
+
+Here some metrics obtained using different Canu parameters.
+
+| inputs | contigs | total length | L50 | pilon contigs | BUSCO                                        |
+|--------|---------|--------------|-----|---------------|----------------------------------------------|
+| .144   | 57      | 19177454     | 12  | 19300039      | C:97.0%[S:96.9%,D:0.1%],F:0.7%,M:2.3%,n:1764 |
+| .105   | 49      | 19075034     | 12  | 19197306      | C:97.0%[S:96.9%,D:0.1%],F:0.7%,M:2.3%,n:1764 |
