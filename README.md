@@ -33,7 +33,7 @@ Here some metrics obtained using different Canu parameters.
 | 1 (.144) | 57      | 19177454     | 12  | 19300039       | `C:97.0%[S:96.9%,D:0.1%],F:0.7%,M:2.3%,n:1764` |
 | 2 (.105) | 49      | 19075034     | 12  | 19197306       | `C:97.0%[S:96.9%,D:0.1%],F:0.7%,M:2.3%,n:1764` |
 
-> The full list of inputs are defined in the respective `inputs_N.json` file, also in this repository.
+\* The full list of inputs are defined in the respective `inputs_N.json` file, available in the following links.
 
 
 - [inputs_1.json](https://1drv.ms/u/s!AiqTy8_f1TgKuV_NMVES9wlEeoSW?e=oaTff6) and [outputs](https://1drv.ms/u/s!AiqTy8_f1TgKuVy5oowCsH8M5lEK?e=7HVsro)
