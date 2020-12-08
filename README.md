@@ -10,6 +10,20 @@ This repository contains a workflow that automates the following tasks:
 
 ![diagram](https://user-images.githubusercontent.com/12699242/99152175-e08cf100-267e-11eb-9c3e-a1ff8f4a5c3b.png)
 
+## About WDL format
+
+More information about this [workflow language can be found here](https://github.com/openwdl/wdl/blob/main/versions/1.0/SPEC.md).
+
+To run it you'll need to use a tool like [cromwell](https://cromwell.readthedocs.io/en/stable/)
+
+This workflow has [Docker](https://www.docker.com/products/docker-desktop) as a dependency. It allows us to use images with pre-installed bioinformatics programs.
+
+Example:
+
+```bash
+java -jar <path-to-cromwell.jar> run -i CanuAssembly.inputs.json CanuAssembly.wdl
+```
+
 ## Inputs
 
 - SRA code for illumina reads
