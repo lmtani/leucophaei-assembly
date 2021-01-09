@@ -1,4 +1,6 @@
 # *S. leucophaei* Genome Assembly
+[![DOI:10.1094/MPMI-08-20-0218-A](https://zenodo.org/badge/DOI/10.1094/MPMI-08-20-0218-A.svg)](https://doi.org/10.1094/MPMI-08-20-0218-A)
+
 
 This repository contains a workflow that automates the following tasks:
 
@@ -7,6 +9,7 @@ This repository contains a workflow that automates the following tasks:
 1. Map Illumina reads into canu contigs.
 1. Run Pilon to improve the assembly.
 1. Evaluate the assembly completeness with BUSCO.
+1. Compare contigs with the submitted assembly using LAST
 
 ![diagram](https://user-images.githubusercontent.com/12699242/99152175-e08cf100-267e-11eb-9c3e-a1ff8f4a5c3b.png)
 
@@ -52,3 +55,11 @@ Here some metrics obtained using different Canu parameters.
 
 - [inputs_1.json](https://1drv.ms/u/s!AiqTy8_f1TgKuV_NMVES9wlEeoSW?e=oaTff6) and [outputs](https://1drv.ms/u/s!AiqTy8_f1TgKuVy5oowCsH8M5lEK?e=7HVsro)
 - [inputs_2.json](https://1drv.ms/u/s!AiqTy8_f1TgKuV64knyq9dXUqV2W?e=tajhuL) and [outputs](https://1drv.ms/u/s!AiqTy8_f1TgKuV3Y1uhIzD0qBi1o?e=u8v5y9)
+
+
+## Cite us
+
+This repository contains the assembly workflow used in:
+
+>Crestana GS, Taniguti LM, Dos Santos CP, Benevenuto J, Ceresini P, Carvalho G, Kitajima JP, Monteiro-Vitorello CBB. **Complete Chromosome-Scale Genome Sequence Resource for Sporisorium panici-leucophaei, the Causal Agent of Sourgrass Smut Disease. Mol Plant Microbe Interact.** 2020 Dec 28. doi: 10.1094/MPMI-08-20-0218-A. PMID: 33369501.
+
